@@ -19,6 +19,8 @@ def send_alarm_message(status, alarm_data):
             elif alarm_data.get('Status') == "Stop":
                 head = "✅ All clear ✅"
             bot.send_message(CHAT_ID, f"{head}\nPlace: {place}\nEvent: {alarm_data.get('Event')}\nTime: {alarm_data.get('StartTime')}")
+        else:
+            pass
     elif status == "error":
         bot.send_message(CHAT_ID, f"Error:\n\n{str(alarm_data)}")
 def run_server(host='0.0.0.0', port=8080):
