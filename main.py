@@ -22,7 +22,7 @@ def send_alarm_message(status, alarm_data):
         else:
             pass
     elif status == "error":
-        bot.send_message(CHAT_ID, f"Error:\n\n{str(alarm_data)}")
+        bot.send_message(CHAT_ID, f"Error:\n\n{str(alarm_data)}", disable_notification=True)
 def run_server(host='0.0.0.0', port=8080):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
