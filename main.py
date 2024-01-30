@@ -14,7 +14,7 @@ bot = telebot.async_telebot.AsyncTeleBot(BOT_TOKEN)
 reference_minute = ""
 alert = True
 
-class IsAdmin(telebot.asyncio_filters.SimpleCustomFilter):
+class IsMe(telebot.asyncio_filters.SimpleCustomFilter):
     key='is_me'
     @staticmethod
     async def check(message: telebot.types.Message):
@@ -77,25 +77,27 @@ async def run_server(host='0.0.0.0', port=8080):
 
 @bot.message_handler(commands=['start'])
 async def start_command(message):
-    await write_to_file(f"Somebody have started bot.\nUsername: {message.from_user.username}\n"
-                        f"Name: {message.from_user.first_name}\nID: {message.from_user.id}\n")
+    await write_to_file(f"Somebody have started bot. Username: {message.from_user.username} "
+                        f"Name: {message.from_user.first_name} ID: {message.from_user.id}")
 
 @bot.message_handler(commands=['log'], is_me=True)
-async def send_log():
+async def send_log(message):
     with open('logs.txt', 'rb') as file:
         await bot.send_document(CHAT_ID, file)
 
 @bot.message_handler(commands=['alert_on'], is_me=True)
-async def turn_on_alert():
+async def turn_on_alert(message):
     global alert
     alert = True
     await bot.send_message(CHAT_ID, "Notification is *ON*", parse_mode="Markdown")
 
 @bot.message_handler(commands=['alert_off'], is_me=True)
-async def turn_off_alert():
+async def turn_off_alert(message):
     global alert
     alert = False
     await bot.send_message(CHAT_ID, "Notification is *OFF*", parse_mode="Markdown")
+
+bot.add_custom_filter(IsMe())
 
 async def main():
     server_task = asyncio.create_task(run_server())
