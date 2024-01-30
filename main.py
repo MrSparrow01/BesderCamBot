@@ -12,6 +12,15 @@ CHAT_ID = "360805436"
 bot = telebot.async_telebot.AsyncTeleBot(BOT_TOKEN)
 
 reference_minute = ""
+alert = True
+
+class IsAdmin(telebot.asyncio_filters.SimpleCustomFilter):
+    key='is_me'
+    @staticmethod
+    async def check(message: telebot.types.Message):
+        if message.from_user.id == 360805436: return True
+        else: return False
+
 async def write_to_file(text):
     kiev_time = pytz.timezone('Europe/Kiev').normalize(datetime.now(tz=pytz.utc)).strftime('%Y-%m-%d %H:%M:%S')
     with open('logs.txt', 'a') as file:
@@ -29,7 +38,7 @@ async def send_alarm_message(alarm_data):
     elif serial_number == '81752845777b8188':
         place = "Garage"
     if alert_event == "HumanDetect":
-        if alert_status == "Start":
+        if alert_status == "Start" and alert:
             if current_minute != reference_minute:
                 await bot.send_message(CHAT_ID,
                                    f"🚨 Warning! 🚨\nPlace: *{place}*\nEvent: Human Detection\nTime: {alert_time}",
@@ -65,10 +74,28 @@ async def run_server(host='0.0.0.0', port=8080):
     async with server:
         await server.serve_forever()
 
-@bot.message_handler(commands=['log'])
-async def send_log(message):
+
+@bot.message_handler(commands=['start'])
+async def start_command(message):
+    await write_to_file(f"Somebody have started bot.\nUsername: {message.from_user.username}\n"
+                        f"Name: {message.from_user.first_name}\nID: {message.from_user.id}\n")
+
+@bot.message_handler(commands=['log'], is_me=True)
+async def send_log():
     with open('logs.txt', 'rb') as file:
         await bot.send_document(CHAT_ID, file)
+
+@bot.message_handler(commands=['alert_on'], is_me=True)
+async def turn_on_alert():
+    global alert
+    alert = True
+    await bot.send_message(CHAT_ID, "Notification is *ON*", parse_mode="Markdown")
+
+@bot.message_handler(commands=['alert_off'], is_me=True)
+async def turn_off_alert():
+    global alert
+    alert = False
+    await bot.send_message(CHAT_ID, "Notification is *OFF*", parse_mode="Markdown")
 
 async def main():
     server_task = asyncio.create_task(run_server())
