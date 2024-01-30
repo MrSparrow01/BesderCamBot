@@ -89,12 +89,14 @@ async def send_log(message):
 async def turn_on_alert(message):
     global alert
     alert = True
+    await write_to_file("Turn ON notifications")
     await bot.send_message(CHAT_ID, "Notification is *ON*", parse_mode="Markdown")
 
 @bot.message_handler(commands=['alert_off'], is_me=True)
 async def turn_off_alert(message):
     global alert
     alert = False
+    await write_to_file("Turn OFF notifications")
     await bot.send_message(CHAT_ID, "Notification is *OFF*", parse_mode="Markdown")
 
 bot.add_custom_filter(IsMe())
