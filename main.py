@@ -21,7 +21,7 @@ class IsMe(telebot.asyncio_filters.SimpleCustomFilter):
     key='is_me'
     @staticmethod
     async def check(message: telebot.types.Message):
-        if message.from_user.id == CHAT_ID: return True
+        if message.from_user.id == int(CHAT_ID): return True
         else: return False
 
 async def write_to_file(text):
@@ -107,7 +107,7 @@ async def bot_status(message):
     await bot.send_message(CHAT_ID, f"Bot is running. Sending notification set to *{alert}*", parse_mode="Markdown")
 
 @bot.message_handler(commands=['clean_log'], is_me=True)
-async def bot_status(message):
+async def clean_logs(message):
     with open('logs.txt', 'w') as file:
         file.write("Logs")
     await bot.send_message(CHAT_ID, f"Log file is now *empty*", parse_mode="Markdown")
