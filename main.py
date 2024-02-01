@@ -5,49 +5,52 @@ import asyncio
 from datetime import datetime
 import pytz
 import re
+import os
 
-BOT_TOKEN = "6439165432:AAG5L4nuWDadmgVtCInngYzOMBZNtwuYNd8"
-CHAT_ID = "360805436"
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+CHAT_ID = os.environ["CHAT"]
+time_zone = 'Europe/Kiev' # Check it in pytz or https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568
 
 bot = telebot.async_telebot.AsyncTeleBot(BOT_TOKEN)
 
-reference_minute = ""
+reference_time = ""
 alert = True
 
+# You can turn off this filter
 class IsMe(telebot.asyncio_filters.SimpleCustomFilter):
     key='is_me'
     @staticmethod
     async def check(message: telebot.types.Message):
-        if message.from_user.id == 360805436: return True
+        if message.from_user.id == CHAT_ID: return True
         else: return False
 
 async def write_to_file(text):
-    kiev_time = pytz.timezone('Europe/Kiev').normalize(datetime.now(tz=pytz.utc)).strftime('%Y-%m-%d %H:%M:%S')
+    kiev_time = pytz.timezone(time_zone).normalize(datetime.now(tz=pytz.utc)).strftime('%Y-%m-%d %H:%M:%S')
     with open('logs.txt', 'a') as file:
         file.write(f"[{kiev_time}] {text}\n")
 
 async def send_alarm_message(alarm_data):
-    global reference_minute
+    global reference_time
     serial_number = alarm_data.get('SerialID')
     alert_event = alarm_data.get('Event')
     alert_time = alarm_data.get('StartTime')
     alert_status = alarm_data.get('Status')
-    current_minute = re.search(r'(\d+):(\d+):(\d+)', alert_time)[2]
+    current_time = re.search(r'\d+:\d+', alert_time)[0]
     if serial_number == '44098fe28501926a':
         place = 'Door'
     elif serial_number == '81752845777b8188':
         place = "Garage"
     if alert_event == "HumanDetect":
         if alert_status == "Start" and alert:
-            if current_minute != reference_minute:
+            if current_time != reference_time:
                 await bot.send_message(CHAT_ID,
                                    f"🚨 Warning! 🚨\nPlace: *{place}*\nEvent: Human Detection\nTime: {alert_time}",
                                    parse_mode='Markdown')
-                reference_minute = current_minute
+                reference_time = current_time
             else:
-                await write_to_file(f"Place: {place} - Event: Human Detection")
+                await write_to_file(f"Place: {place}; Event: Human Detection")
     else:
-        await write_to_file(f"Place: {place} - Event: {alert_event}")
+        await write_to_file(f"Place: {place}; Event: {alert_event}")
 
 async def handle_client(reader, writer):
     addr = writer.get_extra_info('peername')
@@ -98,6 +101,17 @@ async def turn_off_alert(message):
     alert = False
     await write_to_file("Turn OFF notifications")
     await bot.send_message(CHAT_ID, "Notification is *OFF*", parse_mode="Markdown")
+
+@bot.message_handler(commands=['status'], is_me=True)
+async def bot_status(message):
+    await bot.send_message(CHAT_ID, f"Bot is running. Sending notification set to *{alert}*", parse_mode="Markdown")
+
+@bot.message_handler(commands=['clean_log'], is_me=True)
+async def bot_status(message):
+    with open('logs.txt', 'w') as file:
+        file.write("Logs")
+    await bot.send_message(CHAT_ID, f"Log file is now *empty*", parse_mode="Markdown")
+
 
 bot.add_custom_filter(IsMe())
 
