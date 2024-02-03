@@ -40,17 +40,13 @@ async def send_alarm_message(alarm_data):
         place = 'Door'
     elif serial_number == '81752845777b8188':
         place = "Garage"
-    if alert_event == "HumanDetect":
-        if alert_status == "Start" and alert:
-            if current_time != reference_time:
-                await bot.send_message(CHAT_ID,
-                                   f"🚨 Warning! 🚨\nPlace: *{place}*\nEvent: Human Detection\nTime: {alert_time}",
-                                   parse_mode='Markdown')
-                reference_time = current_time
-            else:
-                await write_to_file(f"Place: {place}; Event: Human Detection")
+    if alert_event == "HumanDetect" and alert_status == "Start" and alert and current_time != reference_time:
+        await bot.send_message(CHAT_ID,
+                               f"🚨 Warning! 🚨\nPlace: *{place}*\nEvent: Human Detection\nTime: {alert_time}",
+                               parse_mode='Markdown')
+        reference_time = current_time
     else:
-        await write_to_file(f"Place: {place}; Event: {alert_event}")
+        await write_to_file(f"Place: {place}. Event: {alert_event}")
 
 async def handle_client(reader, writer):
     addr = writer.get_extra_info('peername')
