@@ -50,7 +50,7 @@ async def send_alarm_message(alarm_data):
 
 async def handle_client(reader, writer):
     addr = writer.get_extra_info('peername')
-    await write_to_file(f"Connection from {addr}")
+    #await write_to_file(f"Connection from {addr}")
     while True:
         data = await reader.read(1024)
         if not data:
@@ -88,14 +88,14 @@ async def send_log(message):
 async def turn_on_alert(message):
     global alert
     alert = True
-    await write_to_file("Turn ON notifications")
+    await write_to_file("Turn ON notifications\n======================================")
     await bot.send_message(CHAT_ID, "Notification is *ON*", parse_mode="Markdown")
 
 @bot.message_handler(commands=['alert_off'], is_me=True)
 async def turn_off_alert(message):
     global alert
     alert = False
-    await write_to_file("Turn OFF notifications")
+    await write_to_file("Turn OFF notifications\n======================================")
     await bot.send_message(CHAT_ID, "Notification is *OFF*", parse_mode="Markdown")
 
 @bot.message_handler(commands=['status'], is_me=True)
